@@ -1,0 +1,24 @@
+{
+  "name": "ai-news-rewritor",
+  "version": "1.0.0",
+  "description": "一个现代化的热搜榜AI内容生成器，让你根据热搜话题快速生成图文内容",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "AI",
+    "热搜榜",
+    "内容生成",
+    "图文生成"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+} 

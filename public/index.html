@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日热搜 - AI内容生成器</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        // 处理图片加载失败
+        function handleImageError(img) {
+            // 如果图片加载失败，尝试使用备用图片源
+            const fallbackUrl = `https://picsum.photos/600/400?random=${Math.random()}`;
+            if (img.src !== fallbackUrl) {
+                img.src = fallbackUrl;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>今日热搜榜</h1>
+            <p class="subtitle">点击热搜话题，AI将为你生成内容</p>
+        </header>
+        
+        <main>
+            <div class="hot-search-container">
+                <div class="hot-search-list">
+                    <div class="platform-tabs">
+                        <button class="platform-tab active" data-platform="weibo">
+                            <i class="fab fa-weibo"></i> 微博
+                        </button>
+                        <button class="platform-tab" data-platform="zhihu">
+                            <i class="fab fa-zhihu"></i> 知乎
+                        </button>
+                        <button class="platform-tab" data-platform="baidu">
+                            <i class="fas fa-search"></i> 百度
+                        </button>
+                    </div>
+                    
+                    <ul id="hot-topics">
+                        <!-- Hot topics will be loaded here -->
+                        <li class="loading-item">正在加载热搜榜单...</li>
+                    </ul>
+                </div>
+                
+                <div class="content-preview">
+                    <div id="initial-state" class="initial-state">
+                        <i class="fas fa-hand-point-left"></i>
+                        <p>从左侧选择一条热搜，AI将为你生成内容</p>
+                    </div>
+                    
+                    <div id="loading-state" class="loading-state hidden">
+                        <div class="loader"></div>
+                        <p>AI正在生成内容，请稍候...</p>
+                    </div>
+                    
+                    <div id="content-state" class="content-state hidden">
+                        <h2 id="selected-topic-title"></h2>
+                        <div class="content-image-container">
+                            <img id="generated-image" alt="生成的图片" onerror="handleImageError(this)">
+                        </div>
+                        <div class="content-text">
+                            <p id="generated-text"></p>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="regenerate-btn" class="btn"><i class="fas fa-sync-alt"></i> 重新生成</button>
+                            <button id="copy-btn" class="btn"><i class="fas fa-copy"></i> 复制内容</button>
+                            <button id="share-btn" class="btn"><i class="fas fa-share-alt"></i> 分享</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>© 2023 AI热搜内容生成器 | <a href="#">关于我们</a> | <a href="#">意见反馈</a></p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html> 
