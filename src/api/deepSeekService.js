@@ -45,7 +45,7 @@ class DeepSeekService {
       
       // 从结果中提取文本内容
       const generatedText = result.choices && result.choices[0].message.content
-        ? result.choices[0].message.content.trim()
+        ? this._cleanResponse(result.choices[0].message.content.trim())
         : this._generateFallbackText(topic);
 
       // 从生成的文本中提取适合生成图片的描述
@@ -128,6 +128,20 @@ class DeepSeekService {
     }
     
     return selectedSentences.join(' ');
+  }
+
+  /**
+   * 清理API返回的响应，移除思考过程和不必要的内容
+   * @private
+   * @param {string} rawContent - API返回的原始内容
+   * @returns {string} 清理后的内容
+   */
+  _cleanResponse(rawContent) {
+    return rawContent
+      .replace(/<think>[\s\S]*?<\/think>\n*/g, "") // 移除所有思考过程
+      .replace(/\n*注：.*/s, "") // 移除注释行
+      .replace(/\n{2,}/g, "\n") // 将多个连续换行替换为单个换行
+      .trim(); // 去除首尾空白
   }
 }
 
