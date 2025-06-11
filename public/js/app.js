@@ -13,19 +13,21 @@ const platformTabs = document.querySelectorAll('.platform-tab');
 
 // State
 let currentTopic = null;
-let currentPlatform = 'weibo'; // Default platform
+let currentPlatform = 'weibo'; // Default platform (now Google Top Stories)
 
 // Initialize the app
 function init() {
     loadHotTopics(currentPlatform);
     setupEventListeners();
+    updateStaticTexts(currentPlatform); // Initialize with correct language
 }
 
 // Load hot topics from API
 async function loadHotTopics(platform = 'weibo') {
     try {
-        // Show loading state
-        hotTopicsList.innerHTML = `<li class="loading-item">正在加载热搜榜单...</li>`;
+        // Show loading state with appropriate language
+        const loadingText = getLoadingText(platform);
+        hotTopicsList.innerHTML = `<li class="loading-item">${loadingText}</li>`;
         
         // Fetch real data from backend API
         const response = await fetch(`/api/hot-topics?platform=${platform}`);
@@ -43,8 +45,35 @@ async function loadHotTopics(platform = 'weibo') {
         }
     } catch (error) {
         console.error('Error loading hot topics:', error);
-        hotTopicsList.innerHTML = `<li class="error-item">加载失败，请刷新重试</li>`;
+        const errorText = getErrorText(platform);
+        hotTopicsList.innerHTML = `<li class="error-item">${errorText}</li>`;
     }
+}
+
+// Get loading text based on platform language
+function getLoadingText(platform = 'baidu') {
+    if (platform === 'weibo' || platform === 'google') {
+        return 'Loading Google Top Stories...';
+    } else if (platform === 'zhihu' || platform === 'yahoo') {
+        return 'Loading Yahoo Top Stories...';
+    }
+    return '正在加载热搜榜单...';
+}
+
+// Get error text based on platform language
+function getErrorText(platform = 'baidu') {
+    if (platform === 'weibo' || platform === 'google' || platform === 'zhihu' || platform === 'yahoo') {
+        return 'Failed to load. Please refresh and try again.';
+    }
+    return '加载失败，请刷新重试';
+}
+
+// Get content generation error text based on platform language
+function getContentErrorText(platform = 'baidu') {
+    if (platform === 'weibo' || platform === 'google' || platform === 'zhihu' || platform === 'yahoo') {
+        return 'Sorry, failed to load content. Please try again.';
+    }
+    return '抱歉，内容生成失败，请重试。';
 }
 
 // Render hot topics to the list
@@ -61,16 +90,36 @@ function renderHotTopics(topics) {
             listItem.classList.add('top-three');
         }
         
-        // Format the hot count
-        const hotCount = formatNumber(topic.hot);
+        // Format the hot count based on platform
+        const hotCount = formatNumber(topic.hot, currentPlatform);
+        const hotLabel = getHotLabel(currentPlatform);
         
-        listItem.innerHTML = `
-            <span class="topic-number">${index + 1}</span>
-            <div class="topic-content">
-                <div class="topic-title">${topic.title}</div>
-                <div class="topic-hot">${hotCount} 热度</div>
-            </div>
-        `;
+        // Create rich news display for Google Top Stories and Yahoo Top Stories
+        if (currentPlatform === 'weibo' || currentPlatform === 'google' || currentPlatform === 'zhihu' || currentPlatform === 'yahoo') {
+            listItem.innerHTML = `
+                <span class="topic-number">${index + 1}</span>
+                ${topic.thumbnail ? `<img class="topic-thumbnail" src="${topic.thumbnail}" alt="${topic.title}" onerror="this.style.display='none'">` : ''}
+                <div class="topic-content">
+                    <div class="topic-title">${topic.title}</div>
+                    <div class="topic-meta">
+                        <span class="topic-source">${topic.source || 'Unknown'}</span>
+                        <span class="topic-date">${formatDate(topic.date)}</span>
+                    </div>
+                    <div class="topic-hot">${hotCount} ${hotLabel}</div>
+                    ${topic.snippet ? `<div class="topic-snippet">${topic.snippet}</div>` : ''}
+                    <div class="topic-link" data-url="${topic.link || ''}"></div>
+                </div>
+            `;
+        } else {
+            // Simple display for Chinese platforms
+            listItem.innerHTML = `
+                <span class="topic-number">${index + 1}</span>
+                <div class="topic-content">
+                    <div class="topic-title">${topic.title}</div>
+                    <div class="topic-hot">${hotCount} ${hotLabel}</div>
+                </div>
+            `;
+        }
         
         listItem.addEventListener('click', () => selectTopic(topic));
         
@@ -78,14 +127,60 @@ function renderHotTopics(topics) {
     });
 }
 
-// Format large numbers (e.g., 1234567 -> 123.5万)
-function formatNumber(num) {
+// Format large numbers based on platform language
+function formatNumber(num, platform = 'baidu') {
+    // For Google Top Stories and Yahoo Top Stories, use English formatting
+    if (platform === 'weibo' || platform === 'google' || platform === 'zhihu' || platform === 'yahoo') {
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + 'M';
+        } else if (num >= 1000) {
+            return (num / 1000).toFixed(1) + 'K';
+        } else {
+            return num.toString();
+        }
+    }
+    
+    // For Chinese platforms (baidu, zhihu), use Chinese formatting
     if (num >= 100000000) {
         return (num / 100000000).toFixed(1) + '亿';
     } else if (num >= 10000) {
         return (num / 10000).toFixed(1) + '万';
     } else {
         return num.toString();
+    }
+}
+
+// Get hot label based on platform language
+function getHotLabel(platform = 'baidu') {
+    if (platform === 'weibo' || platform === 'google' || platform === 'zhihu' || platform === 'yahoo') {
+        return 'views'; // English label for Google Top Stories and Yahoo Top Stories
+    }
+    return '热度'; // Chinese label for other platforms
+}
+
+// Format date for display
+function formatDate(dateString) {
+    if (!dateString) return 'Unknown time';
+    
+    // If it's already a relative time (like "1 hour ago"), return as is
+    if (dateString.includes('ago') || dateString.includes('LIVE')) {
+        return dateString;
+    }
+    
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+        
+        if (diffInMinutes < 60) {
+            return `${diffInMinutes}m ago`;
+        } else if (diffInMinutes < 1440) {
+            return `${Math.floor(diffInMinutes / 60)}h ago`;
+        } else {
+            return `${Math.floor(diffInMinutes / 1440)}d ago`;
+        }
+    } catch (error) {
+        return dateString; // Return original if parsing fails
     }
 }
 
@@ -121,7 +216,9 @@ async function generateContent(topic) {
             },
             body: JSON.stringify({
                 topic: topic.title,
-                source: topic.source || ''
+                source: topic.source || '',
+                platform: currentPlatform,
+                originalNews: topic // 传递完整的新闻对象，包含snippet等信息
             })
         });
         
@@ -141,7 +238,8 @@ async function generateContent(topic) {
         console.error('Error generating content:', error);
         loadingState.classList.add('hidden');
         contentState.classList.remove('hidden');
-        generatedText.textContent = '抱歉，内容生成失败，请重试。';
+        const errorText = getContentErrorText(currentPlatform);
+        generatedText.textContent = errorText;
     }
 }
 
@@ -152,12 +250,50 @@ function displayGeneratedContent(data, topic) {
     
     // Update content
     selectedTopicTitle.textContent = topic.title;
+    
+    // For Google Top Stories and Yahoo Top Stories, enhance the content display
+    if (currentPlatform === 'weibo' || currentPlatform === 'google' || currentPlatform === 'zhihu' || currentPlatform === 'yahoo') {
+        // Add source and date information
+        const existingMeta = document.querySelector('.content-meta');
+        if (existingMeta) {
+            existingMeta.remove();
+        }
+        
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'content-meta';
+        
+        // Check if this is a real news image
+        const isRealImage = data.imageUrl && !data.imageUrl.includes('picsum.photos');
+        const imageStatus = isRealImage ? 
+            '<span class="image-status real-image"><i class="fas fa-check-circle"></i> Real news image</span>' : 
+            '<span class="image-status generated-image"><i class="fas fa-image"></i> Generated image</span>';
+        
+        metaDiv.innerHTML = `
+            <div class="content-source-info">
+                <span class="content-source">${topic.source || 'Unknown Source'}</span>
+                <span class="content-date">${formatDate(topic.date)}</span>
+                ${topic.link ? `<a href="${topic.link}" target="_blank" class="content-link">View Original Article <i class="fas fa-external-link-alt"></i></a>` : ''}
+            </div>
+            <div class="content-image-info">
+                ${imageStatus}
+            </div>
+        `;
+        selectedTopicTitle.insertAdjacentElement('afterend', metaDiv);
+    }
+    
     generatedText.textContent = data.text;
+    
+    // Update button texts based on current platform
+    updateButtonTexts(currentPlatform);
+    
+    // Always use high-resolution generated image for content display
+    // Thumbnails are only used in the news list, not in the content view
+    const imageUrl = data.imageUrl;
     
     // 预加载图片，确保图片正确加载后再显示
     const tempImage = new Image();
     tempImage.onload = function() {
-        generatedImage.src = data.imageUrl;
+        generatedImage.src = imageUrl;
         generatedImage.alt = topic.title;
         
         // 显示内容区域
@@ -174,7 +310,62 @@ function displayGeneratedContent(data, topic) {
     };
     
     // 开始加载图片
-    tempImage.src = data.imageUrl;
+    tempImage.src = imageUrl;
+}
+
+// Update button texts based on platform language
+function updateButtonTexts(platform = 'baidu') {
+    if (platform === 'weibo' || platform === 'google' || platform === 'zhihu' || platform === 'yahoo') {
+        // English button texts for Google Top Stories and Yahoo Top Stories
+        regenerateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Regenerate';
+        copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        shareBtn.innerHTML = '<i class="fas fa-share-alt"></i> Share';
+    } else {
+        // Chinese button texts for other platforms
+        regenerateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 重新生成';
+        copyBtn.innerHTML = '<i class="fas fa-copy"></i> 复制内容';
+        shareBtn.innerHTML = '<i class="fas fa-share-alt"></i> 分享';
+    }
+}
+
+// Get copied text based on platform language
+function getCopiedText(platform = 'baidu') {
+    if (platform === 'weibo' || platform === 'google' || platform === 'zhihu' || platform === 'yahoo') {
+        return 'Copied';
+    }
+    return '已复制';
+}
+
+// Get share message based on platform language
+function getShareMessage(platform = 'baidu') {
+    if (platform === 'weibo' || platform === 'google' || platform === 'zhihu' || platform === 'yahoo') {
+        return 'Content copied to clipboard. You can share it manually.';
+    }
+    return '内容已复制到剪贴板，您可以手动分享';
+}
+
+// Update static texts based on platform language
+function updateStaticTexts(platform = 'baidu') {
+    const initialStateText = document.querySelector('#initial-state p');
+    const loadingStateText = document.querySelector('#loading-state p');
+    
+    if (platform === 'weibo' || platform === 'google' || platform === 'zhihu' || platform === 'yahoo') {
+        // English texts for Google Top Stories and Yahoo Top Stories
+        if (initialStateText) {
+            initialStateText.textContent = 'Select a story from the left to view content';
+        }
+        if (loadingStateText) {
+            loadingStateText.textContent = 'Loading content, please wait...';
+        }
+    } else {
+        // Chinese texts for other platforms
+        if (initialStateText) {
+            initialStateText.textContent = '从左侧选择一条热搜，AI将为你生成内容';
+        }
+        if (loadingStateText) {
+            loadingStateText.textContent = 'AI正在生成内容，请稍候...';
+        }
+    }
 }
 
 // Setup event listeners
@@ -198,6 +389,9 @@ function setupEventListeners() {
             
             // Load topics for selected platform
             loadHotTopics(platform);
+            
+            // Update static texts based on platform
+            updateStaticTexts(platform);
         });
     });
     
@@ -222,7 +416,8 @@ function setupEventListeners() {
                 .then(() => {
                     // Show success message
                     const originalText = copyBtn.innerHTML;
-                    copyBtn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                    const copiedText = getCopiedText(currentPlatform);
+                    copyBtn.innerHTML = `<i class="fas fa-check"></i> ${copiedText}`;
                     
                     setTimeout(() => {
                         copyBtn.innerHTML = originalText;
@@ -248,7 +443,8 @@ function setupEventListeners() {
         } else {
             // Fallback for browsers that don't support Web Share API
             copyBtn.click(); // Just copy to clipboard
-            alert('内容已复制到剪贴板，您可以手动分享');
+            const shareMessage = getShareMessage(currentPlatform);
+            alert(shareMessage);
         }
     });
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今日热搜 - AI内容生成器</title>
+    <title>今日热搜榜 | Today's Trending News - AI Content Generator</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -21,8 +21,21 @@
 <body>
     <div class="container">
         <header>
-            <h1>今日热搜榜</h1>
-            <p class="subtitle">点击热搜话题，AI将为你生成内容</p>
+            <div class="title-container">
+                <div class="title-decoration">
+                    <div class="trending-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                </div>
+                <div class="main-title">
+                    <h1 class="title-chinese">今日热搜榜</h1>
+                    <h2 class="title-english">Today's Trending News</h2>
+                </div>
+            </div>
+            <div class="subtitle-container">
+                <p class="subtitle-chinese">点击热搜话题，AI将为你生成内容</p>
+                <p class="subtitle-english">Click on trending topics, AI will generate content for you</p>
+            </div>
         </header>
         
         <main>
@@ -30,10 +43,10 @@
                 <div class="hot-search-list">
                     <div class="platform-tabs">
                         <button class="platform-tab active" data-platform="weibo">
-                            <i class="fab fa-weibo"></i> 微博
+                            <i class="fab fa-google"></i> Google Top Stories
                         </button>
                         <button class="platform-tab" data-platform="zhihu">
-                            <i class="fab fa-zhihu"></i> 知乎
+                            <i class="fab fa-yahoo"></i> Yahoo Top Stories
                         </button>
                         <button class="platform-tab" data-platform="baidu">
                             <i class="fas fa-search"></i> 百度

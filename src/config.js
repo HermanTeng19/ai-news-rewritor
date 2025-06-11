@@ -6,7 +6,8 @@
 require('dotenv').config();
 
 module.exports = {
-  // SerpAPI 配置 (百度新闻 API)
+  // SerpAPI 配置 (百度新闻 API + Google Top Stories)
+  SERPAPI_KEY: process.env.SERPAPI_KEY || 'your_serpapi_key_here', // 从环境变量获取
   serpApi: {
     apiKey: process.env.SERPAPI_KEY || 'your_serpapi_key_here', // 从环境变量获取
     baseUrl: 'https://serpapi.com/search.json'
