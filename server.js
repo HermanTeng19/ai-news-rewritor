@@ -150,7 +150,13 @@ function generateFullNewsText(originalNews, topic) {
   return fullText;
 }
 
-app.listen(port, () => {
-  console.log(`服务器运行在 http://localhost:${port}`);
-  console.log(`在浏览器中打开 http://localhost:${port} 访问应用`);
-}); 
+// Export the Express app for Vercel
+module.exports = app;
+
+// Only start the server if not in a serverless environment
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`服务器运行在 http://localhost:${port}`);
+    console.log(`在浏览器中打开 http://localhost:${port} 访问应用`);
+  });
+} 
